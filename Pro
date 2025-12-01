@@ -1,0 +1,169 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <sstream>
+
+using namespace std;
+
+// Structure to store booking details
+struct Booking {
+    int roomNumber;
+    string guestName;
+    string phone;
+    string checkIn;
+    string checkOut;
+};
+
+// Function to load bookings from CSV
+void loadBookings(vector<Booking> &bookings) {
+    ifstream file("bookings.csv");
+    if (!file.is_open()) return;
+
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        Booking b;
+        string temp;
+
+        getline(ss, temp, ',');
+        b.roomNumber = stoi(temp);
+
+        getline(ss, b.guestName, ',');
+        getline(ss, b.phone, ',');
+        getline(ss, b.checkIn, ',');
+        getline(ss, b.checkOut, ',');
+
+        bookings.push_back(b);
+    }
+
+    file.close();
+}
+
+// Function to save a booking to CSV
+void saveBookingToFile(Booking &b) {
+    ofstream file("bookings.csv", ios::app);
+    file << b.roomNumber << ","
+         << b.guestName << ","
+         << b.phone << ","
+         << b.checkIn << ","
+         << b.checkOut << endl;
+    file.close();
+}
+
+// Check if room is available
+bool isRoomAvailable(int room, vector<Booking> &bookings) {
+    for (auto &b : bookings) {
+        if (b.roomNumber == room) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// Add a new booking
+void addBooking(vector<Booking> &bookings) {
+    Booking b;
+
+    cout << "\nEnter Room Number: ";
+    cin >> b.roomNumber;
+
+    if (!isRoomAvailable(b.roomNumber, bookings)) {
+        cout << "❌ Room already booked!\n";
+        return;
+    }
+
+    cin.ignore();
+    cout << "Enter Guest Name: ";
+    getline(cin, b.guestName);
+
+    cout << "Enter Phone Number: ";
+    getline(cin, b.phone);
+
+    cout << "Enter Check-In Date (DD/MM/YYYY): ";
+    getline(cin, b.checkIn);
+
+    cout << "Enter Check-Out Date (DD/MM/YYYY): ";
+    getline(cin, b.checkOut);
+
+    bookings.push_back(b);
+    saveBookingToFile(b);
+
+    cout << "\n✅ Booking saved successfully!\n";
+}
+
+// Display all bookings
+void displayBookings(vector<Booking> &bookings) {
+    if (bookings.empty()) {
+        cout << "\nNo bookings found.\n";
+        return;
+    }
+
+    cout << "\n===== All Bookings =====\n";
+    for (auto &b : bookings) {
+        cout << "Room No : " << b.roomNumber << endl;
+        cout << "Name    : " << b.guestName << endl;
+        cout << "Phone   : " << b.phone << endl;
+        cout << "CheckIn : " << b.checkIn << endl;
+        cout << "CheckOut: " << b.checkOut << endl;
+        cout << "-----------------------------\n";
+    }
+}
+
+// Check room availability from menu
+void checkAvailability(vector<Booking> &bookings) {
+    int room;
+    cout << "\nEnter Room Number: ";
+    cin >> room;
+
+    if (isRoomAvailable(room, bookings))
+        cout << "✅ Room is AVAILABLE\n";
+    else
+        cout << "❌ Room is ALREADY BOOKED\n";
+}
+
+// Menu system
+void menu() {
+    cout << "\n====== ROOM BOOKING SYSTEM ======\n";
+    cout << "1. Add Booking\n";
+    cout << "2. Check Room Availability\n";
+    cout << "3. Display All Bookings\n";
+    cout << "4. Exit\n";
+    cout << "Enter your choice: ";
+}
+
+// Main function
+int main() {
+    vector<Booking> bookings;
+    loadBookings(bookings);
+
+    int choice;
+
+    do {
+        menu();
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                addBooking(bookings);
+                break;
+
+            case 2:
+                checkAvailability(bookings);
+                break;
+
+            case 3:
+                displayBookings(bookings);
+                break;
+
+            case 4:
+                cout << "\nThank you! Exiting program...\n";
+                break;
+
+            default:
+                cout << "\nInvalid Choice!\n";
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
